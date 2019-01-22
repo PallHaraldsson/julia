@@ -10,7 +10,7 @@ limit(n) = typeof(n) <: Union{Int8,UInt8,Int16,UInt16,Int32,UInt32} && Int === I
 @noinline function factorial_lookup_helper(n::Integer)  # non-fast-path, almost identical to the old code
     n < 0 && throw(DomainError(n, "`n` must not be negative."))
     n > limit(n) && throw(OverflowError(string(n, " is too large to look up in the table")))
-    @inbounds f = _fact_table128[n+1]
+    @inbounds f = _shifted_fact_table128[n+1]
     return oftype(n, f)
 end
 
