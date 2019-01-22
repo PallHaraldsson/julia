@@ -16,7 +16,7 @@ end
 
 @inline function factorial(n::Integer)
     if !(0 <= n <= limit(n)) # if not on the fast path
-        return factorial_lookup_helper(n, table, lim)
+        return factorial_lookup_helper(n)
     else
         @inbounds f = _shifted_fact_table64[(n % Int64) + 1]
         return limit(n) == 20 ? f % Int64 : limit(n) == 34 ? f % UInt128 : oftype(n, f)
