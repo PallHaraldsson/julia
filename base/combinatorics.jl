@@ -1,44 +1,26 @@
-const _fact_table64 =
-    Int64[1,2,6,24,120,720,5040,40320,362880,3628800,39916800,479001600,6227020800,
-          87178291200,1307674368000,20922789888000,355687428096000,6402373705728000,
-          121645100408832000,2432902008176640000]
+const _shifted_fact_table64 = [1; cumprod(1:Int64(20))]  # tables shifted by 1 so factorial(0) can be looked up
 
-const _fact_table128 =
-    Uint128[0x00000000000000000000000000000001, 0x00000000000000000000000000000002,
-            0x00000000000000000000000000000006, 0x00000000000000000000000000000018,
-            0x00000000000000000000000000000078, 0x000000000000000000000000000002d0,
-            0x000000000000000000000000000013b0, 0x00000000000000000000000000009d80,
-            0x00000000000000000000000000058980, 0x00000000000000000000000000375f00,
-            0x00000000000000000000000002611500, 0x0000000000000000000000001c8cfc00,
-            0x0000000000000000000000017328cc00, 0x0000000000000000000000144c3b2800,
-            0x00000000000000000000013077775800, 0x00000000000000000000130777758000,
-            0x00000000000000000001437eeecd8000, 0x00000000000000000016beecca730000,
-            0x000000000000000001b02b9306890000, 0x000000000000000021c3677c82b40000,
-            0x0000000000000002c5077d36b8c40000, 0x000000000000003ceea4c2b3e0d80000,
-            0x000000000000057970cd7e2933680000, 0x00000000000083629343d3dcd1c00000,
-            0x00000000000cd4a0619fb0907bc00000, 0x00000000014d9849ea37eeac91800000,
-            0x00000000232f0fcbb3e62c3358800000, 0x00000003d925ba47ad2cd59dae000000,
-            0x0000006f99461a1e9e1432dcb6000000, 0x00000d13f6370f96865df5dd54000000,
-            0x0001956ad0aae33a4560c5cd2c000000, 0x0032ad5a155c6748ac18b9a580000000,
-            0x0688589cc0e9505e2f2fee5580000000, 0xde1bc4d19efcac82445da75b00000000]
+const _shifted_fact_table128 = [1; cumprod(1:UInt128(34))]
 
-function factorial_lookup(n::Integer, table, lim)
-    n < 0 && throw(DomainError())
-    n > lim && throw(OverflowError())
-    n == 0 && return one(n)
-    @inbounds f = table[n]
+const _fact_table64 = [cumprod(1:Int64(20))]  # kept just for gamma function (Base._fact_table64) in SpecialFunctions.jl, not used here
+
+limit(n) = typeof(n) <: Union{Int8,UInt8,Int16,UInt16,Int32,UInt32} && Int === Int32 ? 12 :
+    typeof(n) <: Int128 ? 33 : typeof(n) <: UInt128 ? 34 : 20
+
+@noinline function factorial_lookup_helper(n::Integer)  # non-fast-path, almost identical to the old code
+    n < 0 && throw(DomainError(n, "`n` must not be negative."))
+    n > limit(n) && throw(OverflowError(string(n, " is too large to look up in the table")))
+    @inbounds f = _fact_table128[n+1]
     return oftype(n, f)
 end
 
-factorial(n::Int128) = factorial_lookup(n, _fact_table128, 33)
-factorial(n::Uint128) = factorial_lookup(n, _fact_table128, 34)
-factorial(n::Union(Int64,Uint64)) = factorial_lookup(n, _fact_table64, 20)
-
-if Int === Int32
-factorial(n::Union(Int8,Uint8,Int16,Uint16)) = factorial(int32(n))
-factorial(n::Union(Int32,Uint32)) = factorial_lookup(n, _fact_table64, 12)
-else
-factorial(n::Union(Int8,Uint8,Int16,Uint16,Int32,Uint32)) = factorial(int64(n))
+@inline function factorial(n::Integer)
+    if !(0 <= n <= limit(n)) # if not on the fast path
+        return factorial_lookup_helper(n, table, lim)
+    else
+        @inbounds f = _shifted_fact_table64[(n % Int64) + 1]
+        return limit(n) == 20 ? f % Int64 : limit(n) == 34 ? f % UInt128 : oftype(n, f)
+    end
 end
 
 function gamma(n::Union(Int8,Uint8,Int16,Uint16,Int32,Uint32,Int64,Uint64))
