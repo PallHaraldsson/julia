@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # This file is a part of Julia. License is MIT: https://julialang.org/license
 
 # Factorials
@@ -31,6 +32,39 @@ if Int === Int32
     factorial(n::Union{Int32,UInt32}) = factorial_lookup(n, _fact_table64, 12)
 else
     factorial(n::Union{Int8,UInt8,Int16,UInt16,Int32,UInt32}) = factorial(Int64(n))
+=======
+const _shifted_fact_table64 = [1; cumprod(1:Int64(20))]  # tables shifted by 1 so factorial(0) can be looked up
+
+const _shifted_fact_table128 = [1; cumprod(1:UInt128(34))]
+
+const _fact_table64 = [cumprod(1:Int64(20))]  # kept just for gamma function (Base._fact_table64) in SpecialFunctions.jl, not used here
+
+limit(n) = typeof(n) <: Union{Int8,UInt8,Int16,UInt16,Int32,UInt32} && Int === Int32 ? 12 :
+    typeof(n) <: Int128 ? 33 : typeof(n) <: UInt128 ? 34 : 20
+
+@noinline function factorial_lookup_helper(n::Integer)  # non-fast-path, almost identical to the old code
+    n < 0 && throw(DomainError(n, "`n` must not be negative."))
+    n > limit(n) && throw(OverflowError(string(n, " is too large to look up in the table")))
+    @inbounds f = _shifted_fact_table128[n+1]
+    return oftype(n, f)
+end
+
+@inline function factorial(n::Integer)
+    if !(0 <= n <= limit(n)) # if not on the fast path
+        return factorial_lookup_helper(n)
+    else
+        @inbounds f = _shifted_fact_table64[(n % Int64) + 1]
+        return limit(n) == 20 ? f % Int64 : limit(n) == 34 ? f % UInt128 : oftype(n, f)
+    end
+end
+
+function gamma(n::Union(Int8,Uint8,Int16,Uint16,Int32,Uint32,Int64,Uint64))
+    n < 0 && throw(DomainError())
+    n == 0 && return Inf
+    n <= 2 && return 1.0
+    n > 20 && return gamma(float64(n))
+    @inbounds return float64(_fact_table64[n-1])
+>>>>>>> 7703f084b61eb50af7bb1478a269f37782e28cc2
 end
 
 
