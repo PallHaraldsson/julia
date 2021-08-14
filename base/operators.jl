@@ -1400,7 +1400,7 @@ in
 
 """
     ∉(item, collection) -> Bool
-    ∌(collection, item) -> Bool
+    ∉(collection, item) -> Bool
 
 Negation of `∈` and `∋`, i.e. checks that `item` is not in `collection`.
 
