@@ -29,7 +29,13 @@ let
 
     # Stdlibs sorted in dependency, then alphabetical, order by contrib/print_sorted_stdlibs.jl
     # Run with the `--exclude-jlls` option to filter out all JLL packages
-    stdlibs = [
+    stdlibs = [:Artifacts, :Dates, :Downloads, :FileWatching, :LibGit2, :Libdl, :Logging, :Markdown,
+        :Printf, :REPL, :Random, :SHA, :Serialization, :TOML, :Tar, :UUIDs, :p7zip_jll,
+
+            :LinearAlgebra,  # Excising :LinearAlgebra is ok too.. it aone is 4% smaller
+    ]
+
+    no_longer_needed_full_list_of_stdlibs = [
         # No dependencies
         :ArgTools,
         :Artifacts,
@@ -68,6 +74,7 @@ let
 
         # 5-depth packages
         :Downloads,
+        :p7zip_jll  # wrong depth? Not critical to have right
 
         # 6-depth packages
         :Pkg,
