@@ -29,7 +29,14 @@ let
 
     # Stdlibs sorted in dependency, then alphabetical, order by contrib/print_sorted_stdlibs.jl
     # Run with the `--exclude-jlls` option to filter out all JLL packages
-    stdlibs = [
+    stdlibs = [:Artifacts, :Dates, :Downloads, :FileWatching, # :LibGit2,
+            :Libdl, :Logging, :Markdown, :Printf, :REPL, :Random, :SHA, :Serialization, :TOML, :Tar, :UUIDs,
+            :p7zip_jll,  # Note, new in list
+
+            :LinearAlgebra,  # Can actually be exciced.
+    ]
+    
+    no_longer_needed_full_list_of_stdlibs = [
         # No dependencies
         :ArgTools,
         :Artifacts,
