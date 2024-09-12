@@ -124,7 +124,7 @@ catdoc(md::MD...) = MD(md...)
 
 if Base.generating_output()
     # workload to reduce latency
-    md"""
+    println(devnull, md"""
     # H1
     ## H2
     ### H3
@@ -140,7 +140,7 @@ if Base.generating_output()
     `code`
     Horizontal Rule
     ---
-    """
+    """)'
 end
 
 end
