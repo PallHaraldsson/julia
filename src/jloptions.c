@@ -380,7 +380,6 @@ JL_DLLEXPORT void jl_parse_opts(int *argcp, char ***argvp)
         // hidden command line options
         { "worker",          optional_argument, 0, opt_worker },
         { "bind-to",         required_argument, 0, opt_bind_to },
-        { "lisp",            no_argument,       0, 1 },
         { "image-codegen",   no_argument,       0, opt_image_codegen },
         { "rr-detach",       no_argument,       0, opt_rr_detach },
         { "strip-metadata",  no_argument,       0, opt_strip_metadata },
